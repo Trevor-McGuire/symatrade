@@ -9,9 +9,15 @@ class AuthApi {
   static Register = (data) => {
     return axios.post(`${API_SERVER}users/register`, data);
   };
-
-  static Authorize = (code) => {
-    return axios.get(`${API_SERVER}sessions/oauth/github?code=${code}`);
+  
+  static Authorize = async ({code, callback}) => {
+    try {
+      const response = await axios.get(`${API_SERVER}sessions/oauth/${callback}?code=${code}`);
+      console.log("response", response);
+      return response;
+    } catch (error) {
+      console.log("error", error);
+    }
   };
 
   static Logout = (data) => {

@@ -1,0 +1,34 @@
+{
+  "name": "symatrade-fullstack-app",
+  "version": "1.0.0",
+  "description": "Simulated market trading app with real time and historical trading capabilities.",
+  "main": "api-server-nodejs/src/index.ts",
+  "scripts": {
+    "test": "cd api-server-nodejs && npm run test",
+    "start": "concurrently \"cd api-server-nodejs && npm run dev\" \"cd react-soft-ui-dashboard && npm run start\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Trevor-McGuire/symatrade.git"
+  },
+  "keywords": [
+    "simulated",
+    "trading",
+    "market",
+    "real-time",
+    "historical",
+    "finance",
+    "stocks",
+    "investment",
+    "portfolio"
+  ],
+  "author": "Trevor McGuire <tm@trevmcdev.com> (https://trevmcdev.com/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Trevor-McGuire/symatrade/issues"
+  },
+  "homepage": "https://github.com/Trevor-McGuire/symatrade#readme",
+  "dependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

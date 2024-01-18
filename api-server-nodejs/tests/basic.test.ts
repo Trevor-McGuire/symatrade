@@ -7,10 +7,9 @@ Copyright (c) 2019 - present AppSeed.us
 import request from 'supertest';
 
 import app from '../src/server';
-import { connect, connection, PrepareDB } from '../src/server/database';
+import { connect, connection } from '../src/server/database';
 
 beforeAll(async () => {
-  PrepareDB();
   await connect();
 });
 afterAll(async () => connection?.close());

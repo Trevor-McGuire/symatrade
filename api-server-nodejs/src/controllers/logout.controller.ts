@@ -1,4 +1,4 @@
-import ActiveSession from '../models/activeSession';
+import ActiveSession from '../models/user/activeSession';
 import { connection } from '../server/database';
 
 export const logoutUser = (req: any, res: any) => {

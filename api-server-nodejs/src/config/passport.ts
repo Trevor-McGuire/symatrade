@@ -7,7 +7,7 @@ Copyright (c) 2019 - present AppSeed.us
 import passport from 'passport';
 import { ExtractJwt, Strategy as JwtStrategy } from 'passport-jwt';
 
-import User from '../models/user';
+import User from '../models/user/user';
 import { connection } from '../server/database';
 
 export default (pass: passport.PassportStatic) => {

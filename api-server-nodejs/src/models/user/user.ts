@@ -17,6 +17,9 @@ export default class User {
   @Column({ type: 'date', default: () => new Date() })
   date?: Date;
 
-  @Column({type: 'text'})
-  user_role!: string
+  @Column({ type: 'text' }) // specify the type here
+  loginMethod!: ObjectId;
+
+  @Column({ type: 'text' }) // specify the type here
+  role!: ObjectId;
 }

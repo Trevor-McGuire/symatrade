@@ -30,6 +30,7 @@ import SoftButton from "components/SoftButton";
 // Authentication layout components
 import CoverLayout from "layouts/authentication/components/CoverLayout";
 import GithubSocial from "layouts/authentication/components/Socials/github";
+import GoogleSocial from "layouts/authentication/components/Socials/google";
 import Separator from "layouts/authentication/components/Separator";
 
 // Images
@@ -44,8 +45,8 @@ function SignIn() {
 
   const [rememberMe, setRememberMe] = useState(true);
   const [formData, setFormData] = useState({
-    'email': '',
-    'password': ''
+    email: "",
+    password: "",
   });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -95,33 +96,32 @@ function SignIn() {
 
   useEffect(() => {
     const url = window.location.href;
-    const hasCode = url.includes("?code=");
+    const urlObj = new URL(url);
+    const code = urlObj.searchParams.get("code");
+    if (!code) return;
+    const callback = urlObj.searchParams.get("callback");
+    const newUrl = urlObj.origin + urlObj.pathname;
+    window.history.pushState({}, null, newUrl[0]);
+    setIsLoading(true);
+    const requestData = {
+      code,
+      callback,
+    };
 
-    // If Github API returns the code parameter
-    if (hasCode) {
-      const newUrl = url.split("?code=");
-      window.history.pushState({}, null, newUrl[0]);
-      setIsLoading(true);
-
-      const requestData = {
-        code: newUrl[1],
-      };
-
-      AuthApi.Authorize(requestData.code)
-        .then(({ data }) => {
-          if (data.user) {
-            setUser(JSON.stringify(data.user));
-            localStorage.setItem("user", JSON.stringify(data.user));
-            handleRedirect();
-          } else {
-            setError("no user returned");
-          }
-        })
-        .catch((error) => {
-          setError(error.message);
-        })
-        .finally(() => setIsLoading(false));
-    }
+    AuthApi.Authorize(requestData)
+      .then(({ data }) => {
+        if (data.user) {
+          setUser(JSON.stringify(data.user));
+          localStorage.setItem("user", JSON.stringify(data.user));
+          handleRedirect();
+        } else {
+          setError("no user returned");
+        }
+      })
+      .catch((error) => {
+        setError(error.message);
+      })
+      .finally(() => setIsLoading(false));
   }, []);
 
   return (
@@ -151,8 +151,9 @@ function SignIn() {
         </div>
       ) : (
         <>
-          <SoftBox display="flex" flexDirection="column" alignItems="center" mb={2}>
+          <SoftBox display="flex" flexDirection="row" alignItems="center" mb={2}>
             <GithubSocial />
+            <GoogleSocial />
           </SoftBox>
           <Separator />
           <SoftBox component="form" role="form">
@@ -162,7 +163,13 @@ function SignIn() {
                   Email
                 </SoftTypography>
               </SoftBox>
-              <SoftInput type="email" name="email" value={formData?.email} onChange={handleFormData} placeholder="Email" />
+              <SoftInput
+                type="email"
+                name="email"
+                value={formData?.email}
+                onChange={handleFormData}
+                placeholder="Email"
+              />
             </SoftBox>
             <SoftBox mb={2}>
               <SoftBox mb={1} ml={0.5}>

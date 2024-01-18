@@ -9,8 +9,8 @@ import Joi from 'joi';
 import jwt from 'jsonwebtoken';
 
 import { checkToken } from '../config/safeRoutes';
-import ActiveSession from '../models/activeSession';
-import User from '../models/user';
+import ActiveSession from '../models/user/activeSession';
+import { User, LoginMethod, Role } from '../models/index';
 import { connection } from '../server/database';
 import { logoutUser } from '../controllers/logout.controller';
 
@@ -20,46 +20,92 @@ const router = express.Router();
 
 const userSchema = Joi.object().keys({
   email: Joi.string().email().required(),
-  username: Joi.string().alphanum().min(4).max(15)
-    .optional(),
-  password: Joi.string().required(),
+  username: Joi.string().alphanum().min(4).max(32).required(),
+  password: Joi.string().required().min(6).max(72),
+  loginMethod: Joi.string().length(24).optional(),
+  role: Joi.string().length(24).optional(),
+  date: Joi.date().optional(),
 });
 
-router.post('/register', (req, res) => {
-  // Joy Validation
-  const result = userSchema.validate(req.body);
-  if (result.error) {
-    res.status(422).json({
-      success: false,
-      msg: `Validation err: ${result.error.details[0].message}`,
-    });
-    return;
-  }
+router.post('/register', async (req, res) => {
+  try {
+    const { username, email, password } = req.body;
 
-  const { username, email, password } = req.body;
-
-  const userRepository = connection!.getMongoRepository(User);
-
-  userRepository.findOne({ where: { email: email } }).then((user) => {
-    if (user) {
-      res.json({ success: false, msg: 'Email already exists' });
-    } else {
-      bcrypt.genSalt(10, (_err, salt) => {
-        bcrypt.hash(password, salt).then((hash) => {
-          const query = {
-            username,
-            email,
-            password: hash,
-          };
-
-          userRepository.save(query).then((u) => {
-            res.json({ success: true, userID: u.id, msg: 'The user was successfully registered' });
-          });
-        });
+    // Joy Validation
+    const result = userSchema.validate(req.body);
+    if (result.error) {
+      res.status(422).json({
+        success: false,
+        msg: `Validation err: ${result.error.details[0].message}`,
       });
+      return;
     }
-  });
+
+    const userRepository = connection!.getMongoRepository(User);
+    const loginMethodRepository = connection!.getMongoRepository(LoginMethod);
+    const roleRepository = connection!.getMongoRepository(Role);
+
+    // Check if username already exists
+    const existingUser = await userRepository.findOne({ where: { username } });
+    if (existingUser) {
+      res.status(400).json({
+        success: false,
+        msg: 'Username already exists',
+      });
+      return;
+    }
+
+    // Check if email already exists
+    const existingEmail = await userRepository.findOne({ where: { email } });
+    if (existingEmail) {
+      res.status(400).json({
+        success: false,
+        msg: 'Email already exists',
+      });
+      return;
+    }
+
+    // Find the login method by its name
+    const foundLoginMethod = await loginMethodRepository.findOne({ where: { name: "email" } });
+    if (!foundLoginMethod) {
+      res.status(400).json({
+        success: false,
+        msg: 'Invalid login method',
+      });
+      return;
+    }
+
+    // find the role by its ID
+    const foundRole = await roleRepository.findOne({ where: { name: "user" } });
+    if (!foundRole) {
+      res.status(400).json({
+        success: false,
+        msg: 'Invalid role',
+      });
+      return;
+    }
+
+    // Hash the password
+    const salt = await bcrypt.genSalt(10);
+    const hash = await bcrypt.hash(password, salt);
+
+    // Create a new user with the login method
+    const newUser = userRepository.create({
+      username,
+      email,
+      password: hash,
+      loginMethod: foundLoginMethod.id,
+      role: foundRole.id,
+      date: new Date(),
+    });
+    await userRepository.save(newUser);
+
+    res.status(201).json({ success: true, userID: newUser.id, msg: 'The user was successfully registered' });
+  } catch (error) {
+    res.status(500).json({ success: false, msg: 'Server error' });
+  }
 });
+
 
 router.post('/login', (req, res) => {
   // Joy Validation

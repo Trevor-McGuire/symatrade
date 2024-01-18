@@ -7,7 +7,8 @@ export class init1626737786922 implements MigrationInterface {
       const roleRepository = queryRunner.connection.getMongoRepository('Role');
       await roleRepository.insertMany([
           { id: 1, name: 'admin' },
-          { id: 2, name: 'user' }
+          { id: 2, name: 'user' },
+          { id: 3, name: 'guest' }
       ]);
   }
 

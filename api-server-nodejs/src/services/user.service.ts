@@ -1,22 +1,28 @@
 import jwt from "jsonwebtoken";
-import User from "../models/user";
-import Role from '../models/role'
-import ActiveSession from "../models/activeSession";
+import User from "../models/user/user";
+import Role from '../models/user/role'
+import ActiveSession from "../models/user/activeSession";
 import { connection } from "../server/database";
-import {DEFAULT_ROLE} from '../constants'
+import { DEFAULT_ROLE } from '../constants'
+
 
 export const createUserWithToken = async (userData: any) => {
+  console.log("userData", userData);
   const userRole = DEFAULT_ROLE
   const userRepository = connection!.getMongoRepository(User);
   const activeSessionRepository = connection!.getMongoRepository(ActiveSession);
   const roleRepository = connection!.getMongoRepository(Role)
 
-  const { login: username, email } = userData;
+  let { login: username, email } = userData;
+  console.log("username", username, "email", email);
   let requiredUser: any = null;
 
   const user = await userRepository.findOne({ where: { username: username } });
+  console.log("user", user);
   const role = await roleRepository.findOne({ where: { name: 'user' } });
-  if(!role) {
+  console.log("rolee", role);
+  if (!role) {
+    console.log("no role exists for user in db");
     throw new Error(`no role exists for ${userRole} in db`)
   }
 

@@ -23,9 +23,8 @@ server.use(compression());
 initPassport(passport);
 server.use(passport.initialize());
 
-// Connect to sqlite
+// Connect to database
 if (process.env.NODE_ENV !== 'test') {
-  console.log("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
   connect();
 }
 
